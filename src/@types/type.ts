@@ -7,6 +7,13 @@ export interface Coordinate {
   y: number;
 }
 
+export interface Boundary {
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+}
+
 export enum Direction {
   Right,
   Up,
