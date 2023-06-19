@@ -8,10 +8,11 @@ import { checkGameOver } from "../utils/checkGameOver";
 import Food from "./Food";
 import { checkEatsFood } from "../utils/checkEatsFood";
 import { randomFoodPosition } from "../utils/randomFoodPosition";
+import Header from "./Header";
 
 const SNAKE_INITIAL_POSITION = [{ x: 5, y: 5 }];
 const FOOD_INITIAL_POSITION = { x: 5, y: 20 };
-const GAME_BOUNDS = { xMin: 0, xMax: 35, yMin: 0, yMax: 72 };
+const GAME_BOUNDS = { xMin: 0, xMax: 35, yMin: 0, yMax: 65 };
 const MOVE_INTERVAL = 50;
 const SCORE_INCREMENT = 10;
 
@@ -20,20 +21,19 @@ const Game = (): JSX.Element => {
   const [snake, setSnake] = useState<Coordinate[]>(SNAKE_INITIAL_POSITION);
   const [food, setFood] = useState<Coordinate>(FOOD_INITIAL_POSITION);
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
-  const [isPause, setIsPause] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
 
   useEffect(() => {
-    console.log(isGameOver);
-
+    // console.log(isGameOver);
     const intervalId = setInterval(() => {
       // console.log("interval()");
       if (!isGameOver) {
-        !isPause && moveSnake();
+        !isPaused && moveSnake();
       }
     }, MOVE_INTERVAL);
     return () => clearInterval(intervalId);
-  }, [snake, isGameOver, isPause]);
+  }, [snake, isGameOver, isPaused]);
 
   const moveSnake = () => {
     const snakeHead = snake[0];
@@ -79,22 +79,42 @@ const Game = (): JSX.Element => {
     //   `Y= ${translationY}, abs = ${Math.abs(translationY)} `
     // );
     if (Math.abs(translationX) > Math.abs(translationY)) {
-      if (translationX > 0) {
+      if (translationX > 0 && direction !== Direction.Left) {
         setDirection(Direction.Right);
-      } else {
+      } else if (translationX < 0 && direction !== Direction.Right) {
         setDirection(Direction.Left);
       }
     } else {
-      if (translationY > 0) {
+      if (translationY > 0 && direction !== Direction.Up) {
         setDirection(Direction.Down);
-      } else {
+      } else if((translationY < 0 && direction !== Direction.Down)) {
         setDirection(Direction.Up);
       }
     }
   };
+
+  const pauseGame = () => {
+    setIsPaused(!isPaused);
+  };
+
+  const reloadGame = () => {
+    setDirection(Direction.Right);
+    setSnake(SNAKE_INITIAL_POSITION);
+    setFood(FOOD_INITIAL_POSITION);
+    setIsGameOver(false);
+    setIsPaused(false);
+    setScore(0);
+  };
+
   return (
     <PanGestureHandler onGestureEvent={handleGesture}>
       <SafeAreaView style={styles.container}>
+        <Header
+          isPaused={isPaused}
+          pauseGame={pauseGame}
+          reloadGame={reloadGame}
+          score={score}
+        />
         <View style={styles.boundaries}>
           <Snake snake={snake} />
           <Food x={food.x} y={food.y} />
