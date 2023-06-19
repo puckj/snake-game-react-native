@@ -5,10 +5,13 @@ import { Coordinate, Direction, GestureEventType } from "../@types/type";
 import { useEffect, useState } from "react";
 import Snake from "./Snake";
 import { checkGameOver } from "../utils/checkGameOver";
+import Food from "./Food";
+import { checkEatsFood } from "../utils/checkEatsFood";
+import { randomFoodPosition } from "../utils/randomFoodPosition";
 
 const SNAKE_INITIAL_POSITION = [{ x: 5, y: 5 }];
 const FOOD_INITIAL_POSITION = { x: 5, y: 20 };
-const GAME_BOUNDS = { xMin: 0, xMax: 37, yMin: 0, yMax: 77 };
+const GAME_BOUNDS = { xMin: 0, xMax: 35, yMin: 0, yMax: 72 };
 const MOVE_INTERVAL = 50;
 const SCORE_INCREMENT = 10;
 
@@ -18,21 +21,24 @@ const Game = (): JSX.Element => {
   const [food, setFood] = useState<Coordinate>(FOOD_INITIAL_POSITION);
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
   const [isPause, setIsPause] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    console.log(isGameOver);
+
+    const intervalId = setInterval(() => {
+      // console.log("interval()");
       if (!isGameOver) {
         !isPause && moveSnake();
       }
     }, MOVE_INTERVAL);
-    return () => {
-      clearInterval(interval);
-    };
+    return () => clearInterval(intervalId);
   }, [snake, isGameOver, isPause]);
 
   const moveSnake = () => {
     const snakeHead = snake[0];
     const newHead = { ...snakeHead };
+    // console.log(snakeHead, " snakeHead");
 
     //game over
     if (checkGameOver(newHead, GAME_BOUNDS)) {
@@ -56,10 +62,14 @@ const Game = (): JSX.Element => {
       default:
         break;
     }
-
-    //if eats food should grow snake
-
-    setSnake([newHead, ...snake.slice(1)]);
+    if (checkEatsFood(newHead, food, 2)) {
+      console.log("eat apple");
+      setFood(randomFoodPosition(GAME_BOUNDS.xMax, GAME_BOUNDS.yMax));
+      setSnake([newHead, ...snake]);
+      setScore(score + SCORE_INCREMENT);
+    } else {
+      setSnake([newHead, ...snake.slice(0, -1)]);
+    }
   };
 
   const handleGesture = (event: GestureEventType) => {
@@ -87,6 +97,7 @@ const Game = (): JSX.Element => {
       <SafeAreaView style={styles.container}>
         <View style={styles.boundaries}>
           <Snake snake={snake} />
+          <Food x={food.x} y={food.y} />
         </View>
       </SafeAreaView>
     </PanGestureHandler>
